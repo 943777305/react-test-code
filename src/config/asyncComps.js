@@ -22,7 +22,7 @@ const Teacher = () => lazy(() => import("@pages/Edu/Teacher"));
 const Settings = () => lazy(() => import("@pages/User/Settings"));
 const Center = () => lazy(() => import("@pages/User/Center"));
 const Subject = () => lazy(() => import("@pages/Edu/Subject"));
-const AddSubject = () => lazy(() => import("@pages/Edu/AddSubject"));
+const AddSubject = () => lazy(() => import('@pages/Edu/Subject/components/AddSubject'));
 
 
 export default {

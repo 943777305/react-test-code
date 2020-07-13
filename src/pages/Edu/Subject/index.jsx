@@ -125,7 +125,10 @@ class Subject extends Component {
       // title 表头这一列展示文本
       // dataIndex 表示这一列要展示data中哪个部分的数据
       // key: 列的key属性
-      { title: '分类名称', dataIndex: 'title', key: 'title', render:() => {
+      { title: '分类名称', 
+      // dataIndex: 'title',
+       key: 'title',
+      render:(value) => {
         if(this.state.subjectId === value._id) { // 如果state中存储的id和当前点击的id 相同则展示input
           // 由于第一页数据有十条，所以render会执行十次，接收的value是对应每一行的数据
           return (<Input className='subject-input'
