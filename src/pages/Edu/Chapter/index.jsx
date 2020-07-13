@@ -16,20 +16,26 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { connect } from "react-redux";
 import SearchForm from "./SearchForm";
 
+
+// 引入获取章节信息列表的请求
+import { getLessonList } from './redux'
+
 import "./index.less";
 
 dayjs.extend(relativeTime);
 
 @connect(
-  (state) => ({
+  state => ({
     // courseList: state.courseList
     // permissionValueList: filterPermissions(
     //   state.course.permissionValueList,
     //   "Course"
     // )
-  })
+    chapterList: state.chapterList
+  }),
+    { getLessonList }
   // { getcourseList }
-)
+  )
 class Chapter extends Component {
   state = {
     searchLoading: false,
@@ -89,6 +95,18 @@ class Chapter extends Component {
       selectedRowKeys,
     });
   };
+
+
+
+  // 显示扩展内容按钮的事件处理回调
+  handleClickExpand = (expand, record) => {
+    // expand为是否展开，值为ture或false    record为记录，存储着点击时这一行的所有数据
+    console.log(expand, record);
+    if(expand) {
+      // 发送请求获取数据
+      this.props.getLessonList(record._id)
+    }
+  }
 
   render() {
     const { previewVisible, previewImage, selectedRowKeys } = this.state;
@@ -290,8 +308,12 @@ class Chapter extends Component {
           <Table
             rowSelection={rowSelection}
             columns={columns}
-            dataSource={data}
+            dataSource={this.props.chapterList.items}
             rowKey="id"
+            // 扩展的+号按钮
+            expandable = {{
+              onExpand:this.handleClickExpand
+            }}
           />
         </div>
 

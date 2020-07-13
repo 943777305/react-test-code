@@ -1,6 +1,7 @@
 import {
   GET_SUBJECT_LIST,
-  GET_SECSUBJECT_LIST
+  GET_SECSUBJECT_LIST,
+  UPDATE_SUBJECT
 } from "./constants";
 
 const initSubjectList = {
@@ -31,6 +32,23 @@ export default function subjectList(prevState = initSubjectList, action) {
           }
         })
       }
+    case UPDATE_SUBJECT:
+      // 通过prevState利用传过来的id找到要修改的那条数据然后修改ttle
+      // 1.遍历prevState， prevState是个对象
+      prevState.items.forEach(subject => {
+        // 先判断传过来的数据是不是一级id
+        if(subject._id === action.data.id) {
+          // 是一级分类，进行修改并且return
+          subject.title = action.data.title
+          return
+        }
+        // 如果没找到，还得遍历一级分类下的二级分类
+        subject.children.forEach(secSubject => {
+          if(secSubject._id === action.data.id){
+            secSubject.title=action.data.title
+          }
+        })
+      })
         // 刚才的代码一直在修改原来的数据,redux也是浅层对比
       // 所以要创建一个新的对象
       return {

@@ -84,12 +84,13 @@ class AddSubject extends Component {
     onFinish = async values => {
         // console.log('Success:', values)
         try{
+            // 发送请求新增课程分类
             await reqAddSubjectList(values.subjectname,values.parentid)
             message.success('课程添加成功')
             // 跳回subjectList页面
-            this.props.histeoy.push('/edu/subject/list')
+            this.props.history.push('/edu/subject/list')
         }catch{
-            message.success('课程添加失败')
+            message.error('课程添加失败')
         }   
     }
 
@@ -158,7 +159,7 @@ class AddSubject extends Component {
                     >
                     <Option value={0} key={0}>{'一级课程分类'}</Option>
                     {/* 根据拿到的一级课程分类动态渲染 */}
-                    {this.props.subjectList.items.map(subject => {
+                    {this.state.subjectList.items.map(subject => {
                        return <Option value={subject._id} key={subject._id} >{subject.title}</Option>
                     })}
                     </Select>

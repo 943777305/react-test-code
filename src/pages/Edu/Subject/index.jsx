@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 // 导入按钮 
-import { Button, Table, Tooltip, Input } from 'antd'
-import { PlusOutlined, FormOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Button, Table, Tooltip, Input, message,Modal } from 'antd'
+import { PlusOutlined, FormOutlined, DeleteOutlined,ExclamationCircleOutlined } from '@ant-design/icons'
 // 导入connect
 import {connect} from 'react-redux'
 
@@ -9,12 +9,14 @@ import {connect} from 'react-redux'
 // 导入发送请求的方法
 // import { reqGetSubjectList } from '../../../api/edu/subject'
 // 导入redux中的异步action
-import { getSubjectList, getSecSubjectList } from './redux'
+import { getSubjectList, getSecSubjectList, updataSubject} from './redux'
 
 import './index.css'
+// 导入课程分类的数据方法
+import { reqDelSubject } from "../../../api/edu/subject";
 
 
-
+const { confirm } = Modal
 // const data = [
 //   {
 //     key: 1,
@@ -47,9 +49,9 @@ import './index.css'
 // ];
 
 @connect(
-  state => ({ subjietList:state.subjietList}),
+  state => ({ subjectList:state.subjectList}),
   // 这里传入的是一个异步action.但是在展示组件中使用的函数,是通过connect进行封装之后的,虽然函数名一样,但是并不是同一个函数
-  { getSubjectList, getSecSubjectList }
+  { getSubjectList, getSecSubjectList, updataSubject }
 ) 
 class Subject extends Component {
   state = {
@@ -62,13 +64,13 @@ class Subject extends Component {
   currentPage = 1
  
    componentDidMount() {
-    // this.getSubjietList(1,10)
+    // this.getSubjectList(1,10)
     // 传递过来的请求方法
     this.props.getSubjectList(1,10)
 
   }
 
-  // getSubjietList = async (page,pageSize) => {
+  // getSubjectList = async (page,pageSize) => {
   //   const res = await  reqGetSubjectList(page, pageSize)
   //   console.log(res)
   //   this.setState({
@@ -76,27 +78,29 @@ class Subject extends Component {
   //   })
   //   console.log(this.state.subject);
   // }
-
+  
+  // 点击页码获取对应页面
   handlePageChange = (page,pageSize) => {
-    // this.getSubjietList(page,pageSize)
+    // this.getSubjcetList(page,pageSize)
     // 得到通过容器组件包装过的方法发送请求
     this.props.getSubjectList(page,pageSize)
     // 动态获取currentPage，使当前页与高亮显示的页数一致
-    this.currentPage = page
+    this.currentPage = page    
   }
+  // 切换每页展示几条数据的事件处理回调
   handleSizeChange = (current,size) => {
-    // this.getSubjietList(current,size)
+    // this.getSubjcetList(current,size)
     // 得到通过容器组件包装过的方法发送请求
     this.props.getSubjectList(current,size)
     // 动态获取currentPage，使当前页与高亮显示的页数一致
     this.currentPage = current
-
+    this.pageSize = size
   }
-
+  // 点击跳转到添加课程分类
   handleGoAddSubject = () => {
     this.props.history.push('/edu/subject/add')
   }
-
+  // 点击展开按钮的事件处理回调
   handleClickExpand = (expanded, record) => {
     // 判断是否展开了二级菜单
     if( expanded ) {
@@ -104,18 +108,101 @@ class Subject extends Component {
       this.props.getSecSubjectList(record._id)  
     }
   }
+    // 点击更新按钮的事件处理函数
   handleUpdateClick = (value) => {
     return () => {
       this.setState({
         subjectId:value._id,
         subjectTitle:value.title
       })
+      // 存储原来的老数据
+      this.OldSubjectTitle = value.title
     }
   }
-
+  // 修改数据时,受控组件input的change回调函数
   handleTitleChange = (e) => {
     this.setState({
-      subjectTitle:e.target.value
+      subjectTitle:e.target.value.trim()
+    })
+  }
+  // 取消按钮的事件处理回调
+  handleCancle = () => {
+      this.setState({
+        subjectId:'',
+        subjectTitle:''
+      })
+  }
+  // 更新确认按钮的事件处理函数
+  handleUpdate =async () =>{
+    // 将state中的状态数据解构出来
+    let {subjectId ,subjectTitle } = this.state
+    // 如果用户输入的字符串为空，则提升不能输入
+    if(subjectTitle.length === 0) {
+      message.error('课程名称不能为空')
+      return
+    }
+    // 如果原数据与新数据相同，则不用发送请求
+    // 思路：点击按钮时，获取输入框内原来的内容，再与输入的内容进行比较
+    if(this.OldSubjectTitle === subjectTitle){
+      message.error('修改的课程名称不能与之前相同')
+      return
+    }
+    // 调用修改数据的方法
+    await this.props.updataSubject(subjectTitle,subjectId)
+    message.success('修改成功！')  
+    // 手动调用取消的事件处理回调，显示内容
+    this.handleCancle()
+
+  }
+
+  // 删除按键的事件处理回调
+  handleDel= value => () => {
+    confirm({
+      title:(
+        <>
+          <div>
+              确定要删除
+              <span style={{color:'red',fontSize:15}}>{value.title}</span>吗？
+          </div>
+        </>
+      ),
+      icon: <ExclamationCircleOutlined />,
+      onOk: async () =>{
+        // 调用删除的action 进行删除
+        await reqDelSubject(value._id)
+        message.success('删除成功！')
+        /* 删除成功后需要重新获取数据
+           如果删除的是最后一页，最后一页只有一条数据并且当前页不为第一页时，那么请求的页面应该是上一页的数据
+           1.首先判断当前页是否是第一页 this.currentPage !== 1
+           2.判断当前是否是最后一页 
+              subjectList.total 为当前的数据总条数
+              currentPage 为当前页的页码数
+              pageSize 为每页显示多少条数据
+              可以通过计算得到一共有多少页
+           3.在判断当前页的数据是否只有一条 
+              由于没有修改当前页请求的redux，如果redux中的items.length为1 时，说明当前页只有一条数据
+        */
+
+        // 计算总页数   总页数 = 向上取整（总条数 / 每页显示条数）
+        const totalPage = Math.ceil(
+          this.props.subjectList.total / this.pageSize
+        )
+        console.log(this.props.subjectList.total);
+        console.log(this.pageSize);
+        if (
+          this.currentPage !== 1 &&
+          this.props.subjectList.items.length === 1 &&
+          totalPage === this.currentPage
+          ) {
+            //若符合条件，则为最后一一页只有一个数据，应该请求上一页数
+            this.props.getSubjectList(--this.currentPage, this.pageSize)
+            return
+          }
+          // console.log(this.currentPage);
+          // console.log(this.props.subjectList.items.length);
+
+          this.props.getSubjectList(this.currentPage, this.pageSize)
+      }
     })
   }
 
@@ -149,10 +236,10 @@ class Subject extends Component {
           if(this.state.subjectId === value._id){
             return (
               <>
-                <Button type='primary' className='update-btn'>
+                <Button type='primary' className='update-btn' onClick={this.handleUpdate}>
                   确认
                 </Button>
-                <Button type='danger'>取消</Button>
+                <Button type='danger' onClick={this.handleCancle}>取消</Button>
               </>
             )
           }
@@ -166,7 +253,7 @@ class Subject extends Component {
               </Button>
             </Tooltip>
             <Tooltip title='删除课程分类'>
-              <Button type='danger'>
+              <Button type='danger' onClick={this.handleDel(value)}>
                 <DeleteOutlined />
               </Button>
             </Tooltip>
@@ -196,15 +283,15 @@ class Subject extends Component {
         }}
         // 表格中每一行数据
         // dataSource={this.state.subject.items}
-        dataSource={this.props.subjietList.items}
+        dataSource={this.props.subjectList.items}
         // 告诉table组件 使用_id 作为key
         rowKey='_id'
         pagination = {{
           // total 总条数
-          total:this.props.subjietList.total,
+          total:this.props.subjectList.total,
           // 是否显示快速跳转
           showQuickJumper:true,
-          showTotal: () =>`共${this.props.subjietList.total}条`,
+          showTotal: () =>`共${this.props.subjectList.total}条`,
           // 是否显示修改页面展示条数
           showSizeChanger:true,
           pageSizeOptions:['5','10','15'],
