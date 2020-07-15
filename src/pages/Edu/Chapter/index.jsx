@@ -108,6 +108,11 @@ class Chapter extends Component {
     }
   }
 
+  // 点击新增章节信息时进行页面跳转并且传递数据
+  handleGoAddLesson = data => () => {
+    this.props.history.push('/edu/chapter/addlesson',data)
+  }
+
   render() {
     const { previewVisible, previewImage, selectedRowKeys } = this.state;
 
@@ -127,13 +132,13 @@ class Chapter extends Component {
         title: "操作",
         width: 300,
         fixed: "right",
-        render: (data) => {
-          if ("free" in data) {
+        render: (data) => {   //---------------------------------------------------------------------------------------------------
+          // if ("free" in data) {
             return (
               <div>
-                <Tooltip title="查看详情">
-                  <Button>
-                    <SettingOutlined />
+                <Tooltip title="新增章节" >
+                  <Button type='primary' onClick={this.handleGoAddLesson(data)}>
+                    <PlusOutlined />
                   </Button>
                 </Tooltip>
                 <Tooltip title="更新章节">
@@ -148,7 +153,7 @@ class Chapter extends Component {
                 </Tooltip>
               </div>
             );
-          }
+          // }
         },
       },
     ];

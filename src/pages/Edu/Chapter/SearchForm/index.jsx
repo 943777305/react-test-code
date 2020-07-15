@@ -45,12 +45,13 @@ function SearchForm(props) {
       courseId: value.courseId
     }
     await props.getChapterList(data)
+    console.log(data);
     message.success('课程章节列表数据获取成功')
   }
 
   return (
     <Form layout="inline" form={form} onFinish={handleGetChapterList}>
-      <Form.Item name="teacherId" label="课程">
+      <Form.Item name="courseId" label="课程">
         <Select
           allowClear
           placeholder="课程"
