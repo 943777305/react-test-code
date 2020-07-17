@@ -10,6 +10,7 @@ import { reqGetQiniuToken } from '@api/edu/lesson'
 import * as qiniu from 'qiniu-js'
 import { nanoid } from 'nanoid'
 
+
 // 定义一个限制上传视频大小的常量
 const MAX_VIDEO_SIZE = 20 * 1024 * 1024
 
