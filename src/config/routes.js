@@ -1,5 +1,11 @@
-import Login from "@pages/Login";
-import NotFound from "@pages/404";
+// import Login from "@pages/Login";
+// import NotFound from "@pages/404";
+// import Oauth from '@pages/Login/components/Oauth'
+
+import { lazy } from 'react'
+const Login =  lazy(() => import('@pages/Login'))
+const NotFound =  lazy(() => import('@pages/404'))
+const Oauth =  lazy(() => import('@pages/Login/components/Oauth'))
 
 //#region 
 /* export const asyncRoutes = [
@@ -197,6 +203,11 @@ export const constantRoutes = [
 		component: Login,
 		title: "登录",
 	},
+	{
+		path: '/oauth',
+		component: Oauth,
+		title: 'git授权登录'
+	  },
 	{ path: "*", component: NotFound },
 ];
 
